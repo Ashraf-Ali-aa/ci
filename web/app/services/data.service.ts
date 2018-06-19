@@ -8,6 +8,7 @@ import {Lane, LaneResponse} from '../models/lane';
 import {Project, ProjectResponse} from '../models/project';
 import {ProjectSummary, ProjectSummaryResponse} from '../models/project_summary';
 import {Repository, RepositoryResponse} from '../models/repository';
+import { BuildSummary, BuildSummaryResponse } from '../models/build_summary';
 
 // Data server is currently locally hosted.
 const HOSTNAME = '/data';
@@ -42,7 +43,13 @@ export class DataService {
   getBuild(projectId: string, buildNumber: number): Observable<Build> {
     const url = `${HOSTNAME}/projects/${projectId}/build/${buildNumber}`;
     return this.http.get<BuildResponse>(url).pipe(
-        map((project) => new Build(project)));
+        map((build) => new Build(build)));
+  }
+
+  rebuild(projectId: string, buildNumber: number): Observable<BuildSummary> {
+    const url = `${HOSTNAME}/projects/${projectId}/build/${buildNumber}/rebuild`;
+    return this.http.post<BuildSummaryResponse>(url, {}).pipe(
+        map((build) => new BuildSummary(build)));
   }
 
   getRepoLanes(repoFullName: string, branch: string): Observable<Lane[]> {

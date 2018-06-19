@@ -1,11 +1,13 @@
 import 'rxjs/add/operator/switchMap';
 
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, ParamMap} from '@angular/router';
 
 import {Breadcrumb} from '../common/components/toolbar/toolbar.component';
 import {Project} from '../models/project';
 import {DataService} from '../services/data.service';
+import { BuildSummary } from '../models/build_summary';
+import { MatTable } from '@angular/material';
 
 @Component({
   selector: 'fci-project',
@@ -13,10 +15,11 @@ import {DataService} from '../services/data.service';
   styleUrls: ['./project.component.scss']
 })
 export class ProjectComponent implements OnInit {
-  readonly DISPLAYED_COLUMNS: string[] = ['number', 'date', 'sha'];
+  @ViewChild('buildsTable') table: MatTable<BuildSummary>;
+  readonly DISPLAYED_COLUMNS: string[] =
+      ['number', 'started', 'duration', 'branch', 'sha'];
   isLoading = true;
   project: Project;
-  readonly projectId: string;
   readonly breadcrumbs: Breadcrumb[] =
       [{label: 'Dashboard', url: '/'}, {hint: 'Project'}];
 
@@ -33,6 +36,14 @@ export class ProjectComponent implements OnInit {
           this.updateBreadcrumbs(this.project.name);
           this.isLoading = false;
         });
+  }
+
+  rebuild(buildNumber: number) {
+    this.dataService.rebuild(this.project.id, buildNumber).subscribe((newBuild) => {
+      this.project.builds.unshift(newBuild);
+      // Need to re-render rows now that new data is added.
+      this.table.renderRows();
+    });
   }
 
   private updateBreadcrumbs(projectName: string) {
